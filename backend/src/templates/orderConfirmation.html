@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation - AI Logistics System</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .email-container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="20" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .logo {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .logo::before {
+            content: "✅";
+            font-size: 30px;
+        }
+        
+        .header-subtitle {
+            font-size: 16px;
+            opacity: 0.95;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .confirmation-message {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+        
+        .confirmation-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #065f46;
+            margin-bottom: 10px;
+        }
+        
+        .confirmation-subtitle {
+            color: #6b7280;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        .order-summary {
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+            border: 2px solid #a7f3d0;
+            border-radius: 16px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #a7f3d0;
+        }
+        
+        .order-id {
+            font-size: 18px;
+            font-weight: 700;
+            color: #065f46;
+        }
+        
+        .order-status {
+            background: #059669;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .order-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .detail-group {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #d1fae5;
+        }
+        
+        .detail-group h4 {
+            color: #065f46;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .detail-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .detail-label {
+            color: #374151;
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            color: #6b7280;
+            text-align: right;
+        }
+        
+        .pricing-summary {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #10b981;
+        }
+        
+        .pricing-summary h4 {
+            color: #065f46;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .price-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+        }
+        
+        .price-item.total {
+            border-top: 2px solid #a7f3d0;
+            margin-top: 10px;
+            padding-top: 15px;
+            font-weight: 700;
+            font-size: 18px;
+            color: #065f46;
+        }
+        
+        .price-label {
+            color: #374151;
+        }
+        
+        .price-value {
+            color: #059669;
+            font-weight: 600;
+        }
+        
+        .timeline {
+            margin: 35px 0;
+        }
+        
+        .timeline h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .timeline-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin: 30px 0;
+        }
+        
+        .timeline-steps::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 40px;
+            right: 40px;
+            height: 2px;
+            background: #e5e7eb;
+            z-index: 1;
+        }
+        
+        .timeline-step {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            flex: 1;
+        }
+        
+        .timeline-step.active .step-circle {
+            background: #059669;
+            color: white;
+        }
+        
+        .timeline-step.active .step-line {
+            background: #059669;
+        }
+        
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin: 0 auto 10px;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .step-text {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .tracking-info {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+            border-left: 4px solid #059669;
+        }
+        
+        .tracking-info h3 {
+            color: #1f2937;
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .tracking-code {
+            font-family: 'Courier New', monospace;
+            background: #059669;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            text-align: center;
+            margin: 10px 0;
+            letter-spacing: 2px;
+        }
+        
+        .cta-section {
+            text-align: center;
+            margin: 35px 0;
+            padding: 30px;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+            border-radius: 16px;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            padding: 14px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .cta-button.primary {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+        }
+        
+        .cta-button.secondary {
+            background: white;
+            color: #059669;
+            border: 2px solid #059669;
+        }
+        
+        .support-info {
+            background: #fef3c7;
+            border: 2px solid #fbbf24;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .support-info h4 {
+            color: #92400e;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .support-info p {
+            color: #a16207;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .footer {
+            background: #f9fafb;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .footer-text {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .footer-links {
+            margin-top: 15px;
+        }
+        
+        .footer-links a {
+            color: #059669;
+            text-decoration: none;
+            margin: 0 10px;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 700px) {
+            .email-container {
+                margin: 10px;
+                border-radius: 12px;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .order-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .timeline-steps {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .timeline-steps::before {
+                display: none;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="logo">Order Confirmed</div>
+            <div class="header-subtitle">Your package is ready for pickup</div>
+            <div class="status-badge">{{orderStatus}}</div>
+        </div>
+        
+        <div class="content">
+            <div class="confirmation-message">
+                <h1 class="confirmation-title">Thank you, {{customerName}}!</h1>
+                <p class="confirmation-subtitle">Your order has been confirmed and is now being processed by our AI-powered logistics network across India.</p>
+            </div>
+            
+            <div class="order-summary">
+                <div class="order-header">
+                    <div class="order-id">Order #{{orderId}}</div>
+                    <div class="order-status">{{orderStatus}}</div>
+                </div>
+                
+                <div class="order-details">
+                    <div class="detail-group">
+                        <h4>📦 Package Details</h4>
+                        <div class="detail-item">
+                            <span class="detail-label">Type</span>
+                            <span class="detail-value">{{packageType}}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Weight</span>
+                            <span class="detail-value">{{weight}} kg</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Dimensions</span>
+                            <span class="detail-value">{{dimensions}}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Priority</span>
+                            <span class="detail-value">{{priority}}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-group">
+                        <h4>📍 Delivery Route</h4>
+                        <div class="detail-item">
+                            <span class="detail-label">From</span>
+                            <span class="detail-value">{{pickupCity}}, {{pickupState}}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">To</span>
+                            <span class="detail-value">{{deliveryCity}}, {{deliveryState}}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Distance</span>
+                            <span class="detail-value">{{distance}} km</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Est. Delivery</span>
+                            <span class="detail-value">{{estimatedDelivery}}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pricing-summary">
+                    <h4>💰 Pricing Breakdown</h4>
+                    <div class="price-item">
+                        <span class="price-label">Base Price</span>
+                        <span class="price-value">₹{{basePrice}}</span>
+                    </div>
+                    <div class="price-item">
+                        <span class="price-label">Distance Charge</span>
+                        <span class="price-value">₹{{distanceCharge}}</span>
+                    </div>
+                    <div class="price-item">
+                        <span class="price-label">Weight Charge</span>
+                        <span class="price-value">₹{{weightCharge}}</span>
+                    </div>
+                    <div class="price-item">
+                        <span class="price-label">Priority Charge</span>
+                        <span class="price-value">₹{{priorityCharge}}</span>
+                    </div>
+                    <div class="price-item">
+                        <span class="price-label">Taxes & Fees</span>
+                        <span class="price-value">₹{{taxes}}</span>
+                    </div>
+                    <div class="price-item total">
+                        <span class="price-label">Total Amount</span>
+                        <span class="price-value">₹{{totalAmount}}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="timeline">
+                <h3>🚚 Delivery Timeline</h3>
+                <div class="timeline-steps">
+                    <div class="timeline-step active">
+                        <div class="step-circle">1</div>
+                        <div class="step-text">Order Placed</div>
+                    </div>
+                    <div class="timeline-step">
+                        <div class="step-circle">2</div>
+                        <div class="step-text">Agent Assigned</div>
+                    </div>
+                    <div class="timeline-step">
+                        <div class="step-circle">3</div>
+                        <div class="step-text">In Transit</div>
+                    </div>
+                    <div class="timeline-step">
+                        <div class="step-circle">4</div>
+                        <div class="step-text">Out for Delivery</div>
+                    </div>
+                    <div class="timeline-step">
+                        <div class="step-circle">5</div>
+                        <div class="step-text">Delivered</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tracking-info">
+                <h3>📱 Track Your Order</h3>
+                <p style="color: #6b7280; margin-bottom: 15px;">Use this tracking code to monitor your package in real-time:</p>
+                <div class="tracking-code">{{trackingCode}}</div>
+                <p style="color: #6b7280; font-size: 14px; text-align: center; margin-top: 10px;">
+                    Track online at: <strong>track.ailogistics.com</strong>
+                </p>
+            </div>
+            
+            <div class="cta-section">
+                <p style="margin-bottom: 20px; color: #374151; font-weight: 500;">Manage your order or get support:</p>
+                <div class="cta-buttons">
+                    <a href="{{trackOrderUrl}}" class="cta-button primary">Track Order</a>
+                    <a href="{{manageOrderUrl}}" class="cta-button secondary">Manage Order</a>
+                </div>
+            </div>
+            
+            <div class="support-info">
+                <h4>🔔 Order Updates</h4>
+                <p>You'll receive SMS and email notifications at each delivery milestone. Expected delivery: <strong>{{estimatedDelivery}}</strong></p>
+            </div>
+            
+            <div style="text-align: center; color: #6b7280; font-size: 14px; line-height: 1.6;">
+                <p><strong>Need help?</strong> Our AI-powered support is available 24/7</p>
+                <p>📧 Email: orders@ailogistics.com | 📞 Phone: +91-1800-DELIVERY</p>
+                <p>💬 Live Chat: chat.ailogistics.com</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p class="footer-text">
+                Thank you for choosing AI Logistics System - India's smartest delivery network.<br>
+                This confirmation was sent to {{customerEmail}} for Order #{{orderId}}.
+            </p>
+            <div class="footer-links">
+                <a href="{{helpCenterUrl}}">Help Center</a>
+                <a href="{{trackOrderUrl}}">Track Order</a>
+                <a href="{{contactUrl}}">Contact Support</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

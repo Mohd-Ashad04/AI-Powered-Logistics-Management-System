@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to AI Logistics System</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .logo::before {
+            content: "🚚";
+            font-size: 32px;
+        }
+        
+        .header-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .welcome-message {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .welcome-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+        
+        .welcome-subtitle {
+            color: #6b7280;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        
+        .user-info {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 30px 0;
+            border-left: 4px solid #4f46e5;
+        }
+        
+        .user-info h3 {
+            color: #1f2937;
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .info-value {
+            color: #6b7280;
+        }
+        
+        .features {
+            margin: 30px 0;
+        }
+        
+        .features h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .feature-item {
+            text-align: center;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .feature-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .feature-text {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .cta-section {
+            text-align: center;
+            margin: 30px 0;
+            padding: 25px;
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border-radius: 12px;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            text-decoration: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .footer {
+            background: #f9fafb;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .footer-text {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .footer-links {
+            margin-top: 15px;
+        }
+        
+        .footer-links a {
+            color: #4f46e5;
+            text-decoration: none;
+            margin: 0 10px;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 600px) {
+            .email-container {
+                margin: 10px;
+                border-radius: 12px;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="logo">AI Logistics System</div>
+            <div class="header-subtitle">Pan-India Smart Delivery Network</div>
+        </div>
+        
+        <div class="content">
+            <div class="welcome-message">
+                <h1 class="welcome-title">Welcome aboard, {{customerName}}! 🎉</h1>
+                <p class="welcome-subtitle">Your account has been successfully created. You're now part of India's most advanced logistics network covering 28 states and 140+ cities.</p>
+            </div>
+            
+            <div class="user-info">
+                <h3>📋 Your Account Details</h3>
+                <div class="info-row">
+                    <span class="info-label">Customer ID</span>
+                    <span class="info-value">{{customerId}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email</span>
+                    <span class="info-value">{{customerEmail}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Username</span>
+                    <span class="info-value">{{username}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Registration Date</span>
+                    <span class="info-value">{{registrationDate}}</span>
+                </div>
+            </div>
+            
+            <div class="features">
+                <h3>🚀 What You Can Do Now</h3>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">📦</div>
+                        <div class="feature-text">Create Orders</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">📱</div>
+                        <div class="feature-text">Real-time Tracking</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🤖</div>
+                        <div class="feature-text">AI-Powered Pricing</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">💳</div>
+                        <div class="feature-text">Secure Payments</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="cta-section">
+                <p style="margin-bottom: 20px; color: #374151; font-weight: 500;">Ready to send your first package?</p>
+                <a href="{{dashboardUrl}}" class="cta-button">Start Shipping Now</a>
+            </div>
+            
+            <div style="text-align: center; color: #6b7280; font-size: 14px; line-height: 1.6;">
+                <p><strong>Need help?</strong> Our support team is available 24/7</p>
+                <p>📧 Email: support@ailogistics.com | 📞 Phone: +91-1800-LOGISTICS</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p class="footer-text">
+                Thank you for choosing AI Logistics System - India's smartest delivery network.<br>
+                This email was sent to {{customerEmail}}. If you didn't create this account, please contact our support team.
+            </p>
+            <div class="footer-links">
+                <a href="{{helpCenterUrl}}">Help Center</a>
+                <a href="{{privacyPolicyUrl}}">Privacy Policy</a>
+                <a href="{{unsubscribeUrl}}">Unsubscribe</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

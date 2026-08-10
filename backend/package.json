@@ -1,0 +1,35 @@
+{
+  "name": "ai-logistics-system",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "seed": "cd test && node seedDatabase.js",
+    "test": "cd test && node test.js"
+  },
+  "dependencies": {
+    "axios": "^1.11.0",
+    "bcrypt": "^6.0.0",
+    "cloudinary": "^2.7.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-session": "^1.18.2",
+    "handlebars": "^4.7.8",
+    "joi": "^17.11.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.0",
+    "multer": "^2.0.2",
+    "nodemailer": "^7.0.5",
+    "nodemon": "^3.0.1",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
+    "razorpay": "^2.9.6",
+    "stripe": "^18.4.0",
+    "uuid": "^11.1.0"
+  },
+  "author": "Ayaz",
+  "license": "ISC",
+  "description": "AI-driven logistics and delivery system with dynamic pricing and time estimation"
+}
