@@ -16,7 +16,7 @@ class WorkflowController {
     if (!agent) {
       return null;
     }
-    return { isAdmin: false, agentId: agent.agentId };
+    return { isAdmin: false, agentId: agent._id.toString() };
   }
 
   // Create order with automatic pickup assignment
@@ -61,7 +61,7 @@ class WorkflowController {
       const order = await Order.findById(orderId);
       if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
       
-      if (!identity.isAdmin && order.workflowTracking?.pickupAgent !== agentId) {
+      if (!identity.isAdmin && order.workflowTracking?.pickupAgent?.toString() !== agentId) {
          return res.status(403).json({ success: false, message: 'Access denied. You are not assigned to pickup this order.' });
       }
 
@@ -173,7 +173,7 @@ class WorkflowController {
       const order = await Order.findById(orderId);
       if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
       
-      if (!identity.isAdmin && order.workflowTracking?.deliveryAgent !== agentId) {
+      if (!identity.isAdmin && order.workflowTracking?.deliveryAgent?.toString() !== agentId) {
          return res.status(403).json({ success: false, message: 'Access denied. You are not assigned to deliver this order.' });
       }
 

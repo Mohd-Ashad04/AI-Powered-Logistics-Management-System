@@ -1,5 +1,5 @@
 const logisticsService = require('../services/logisticsService');
-const aiService = require('../services/aiService');
+const pricingEngine = require('../services/pricingEngine');
 
 class PricingController {
   
@@ -8,41 +8,27 @@ class PricingController {
       let { items, pickupPincode, dropPincode, deliveryType, orderType, priority } = req.body;
       
       // Handle test data format transformation
-      if (!items && req.body.packageDetails) {
-        const orderData = req.body;
-        items = orderData.packageDetails.items || [
+      let packageDetails = req.body.packageDetails;
+      if (!items && packageDetails) {
+        items = packageDetails.items || [
           {
-            name: orderData.packageDetails.description || 'Package',
-            weight: orderData.packageDetails.deadWeight_kg || 1,
-            dimensions: orderData.packageDetails.dimensions || {
+            name: packageDetails.description || 'Package',
+            weight: packageDetails.deadWeight_kg || 1,
+            dimensions: packageDetails.dimensions || {
               length: 30, width: 20, height: 15
             },
             value: 1000,
             quantity: 1
           }
         ];
-        pickupPincode = orderData.pickupAddress?.pincode;
-        dropPincode = orderData.recipientDetails?.address?.pincode;
-        orderType = orderData.orderType || 'standard';
-        priority = orderData.priority || 'medium';
-
-        console.log('📦 Transformed test data format for pricing calculation');
-        
-        // Use AI service for better pricing with full order data
-        try {
-          const aiPricing = await aiService.generatePricing(orderData);
-          return res.status(200).json({
-            success: true,
-            message: 'AI-powered pricing calculated successfully',
-            data: aiPricing,
-            source: 'ai_service'
-          });
-        } catch (aiError) {
-          console.log('⚠️  AI pricing failed, falling back to standard calculation');
-        }
+        pickupPincode = req.body.pickupAddress?.pincode;
+        dropPincode = req.body.recipientDetails?.address?.pincode;
+        orderType = req.body.orderType || 'standard';
+        priority = req.body.priority || 'medium';
+      } else if (!packageDetails) {
+        packageDetails = { items };
       }
       
-      // Validate required fields
       if (!items || !pickupPincode || !dropPincode) {
         return res.status(400).json({
           success: false,
@@ -50,49 +36,20 @@ class PricingController {
         });
       }
 
-      // Calculate basic pricing
-      let basePrice = 0;
-      let weightCharge = 0;
-      let volumeCharge = 0;
-      let valueCharge = 0;
-      
-      items.forEach(item => {
-        basePrice += 50; // Base price per item
-        weightCharge += (item.weight || 1) * 15; // ₹15 per kg
-        
-        const volume = (item.dimensions?.length || 10) * (item.dimensions?.width || 10) * (item.dimensions?.height || 10) / 1000;
-        volumeCharge += volume * 5; // ₹5 per cubic unit
-        
-        valueCharge += (item.value || 0) * 0.001; // 0.1% of item value
+      // M1-B: Authoritative deterministic pricing
+      const pricingData = pricingEngine.calculatePrice({
+        pickupPincode,
+        dropPincode,
+        packageDetails,
+        paymentDetails: req.body.paymentDetails,
+        orderType,
+        priority
       });
       
-      // Distance calculation (simplified)
-      const distance = Math.abs(parseInt(pickupPincode) - parseInt(dropPincode)) / 1000;
-      const distanceCharge = Math.max(distance * 2, 50);
-      
-      // Priority charges
-      let priorityMultiplier = 1;
-      if (priority === 'high') priorityMultiplier = 1.5;
-      if (priority === 'critical') priorityMultiplier = 2;
-      
-      // Delivery type charges
-      let deliveryMultiplier = 1;
-      if (deliveryType === 'express') deliveryMultiplier = 1.5;
-      if (deliveryType === 'scheduled') deliveryMultiplier = 1.2;
-      
-      // Order type charges
-      let orderTypeCharge = 0;
-      if (orderType === 'handle_with_care') orderTypeCharge = 100;
-      if (orderType === 'by_air') orderTypeCharge = 200;
-      
-      const subtotal = (basePrice + weightCharge + volumeCharge + valueCharge + distanceCharge) * priorityMultiplier * deliveryMultiplier + orderTypeCharge;
-      const gst = subtotal * 0.18; // 18% GST
-      const totalPrice = subtotal + gst;
-      
-      // Estimated delivery time
+      // M1-B: Deterministic delivery estimation (Restored to original rules)
       let estimatedHours = 24; // Base 24 hours
       if (deliveryType === 'express') estimatedHours = 12;
-      if (priority === 'critical') estimatedHours = Math.floor(estimatedHours / 2);
+      if (priority === 'critical' || priority === 'HIGH') estimatedHours = Math.floor(estimatedHours / 2);
       
       const estimatedDelivery = new Date(Date.now() + estimatedHours * 60 * 60 * 1000);
       
@@ -101,32 +58,33 @@ class PricingController {
         message: 'Pricing calculated successfully',
         data: {
           pricing: {
-            basePrice: Math.round(basePrice),
-            weightCharge: Math.round(weightCharge),
-            volumeCharge: Math.round(volumeCharge),
-            valueCharge: Math.round(valueCharge),
-            distanceCharge: Math.round(distanceCharge),
-            orderTypeCharge,
-            priorityMultiplier,
-            deliveryMultiplier,
-            subtotal: Math.round(subtotal),
-            gst: Math.round(gst),
-            totalPrice: Math.round(totalPrice)
+            basePrice: pricingData.breakdown.baseCharge,
+            weightCharge: pricingData.breakdown.weightCharge,
+            volumeCharge: pricingData.breakdown.handlingCharges,
+            valueCharge: 0,
+            distanceCharge: pricingData.breakdown.distanceCharge,
+            orderTypeCharge: pricingData.breakdown.orderTypeSurcharge,
+            priorityMultiplier: 1,
+            deliveryMultiplier: 1,
+            subtotal: pricingData.subtotal,
+            gst: pricingData.breakdown.gst,
+            totalPrice: pricingData.totalCost
           },
           estimation: {
             estimatedDeliveryTime: `${estimatedHours} hours`,
             estimatedDeliveryDate: estimatedDelivery,
-            distance: `${Math.round(distance)} km`
+            distance: `${pricingData.breakdown.distanceCharge / 2} km`
           },
           breakdown: {
             items: items.length,
-            totalWeight: items.reduce((sum, item) => sum + (item.weight || 1), 0),
+            totalWeight: pricingData.chargeableWeight,
             totalValue: items.reduce((sum, item) => sum + (item.value || 0), 0),
             pickupPincode,
             dropPincode,
             deliveryType,
             orderType,
-            priority
+            priority,
+            zone: pricingData.zone
           }
         }
       });

@@ -12,7 +12,8 @@ const config = {
   SECRET_KEY: process.env.SECRET_KEY || 'your-secret-key',
 
   // Database
-  MONGO_URI: process.env.MONGO_URI || 'mongodb://localhost:27017/logistics_db',
+  MONGO_URI: process.env.NODE_ENV === 'test' ? process.env.TEST_DATABASE_URI : (process.env.MONGO_URI || 'mongodb://localhost:27017/logistics_db'),
+  TEST_DATABASE_URI: process.env.TEST_DATABASE_URI,
 
   // AI Service
   GEMINI_API_KEY: process.env.GEMINI_API_KEY,
@@ -34,6 +35,15 @@ if (!config.GEMINI_API_KEY || config.GEMINI_API_KEY === 'your_gemini_api_key') {
 
 if (config.NODE_ENV === 'production' && config.SECRET_KEY === 'your-secret-key') {
   throw new Error('SECRET_KEY must be set in production');
+}
+
+if (config.NODE_ENV === 'test') {
+  if (!config.TEST_DATABASE_URI) {
+    throw new Error('TEST_DATABASE_URI must be provided in test environment');
+  }
+  if (config.TEST_DATABASE_URI === process.env.MONGO_URI) {
+    throw new Error('TEST_DATABASE_URI cannot be identical to MONGO_URI (Safety constraint)');
+  }
 }
 
 console.log('✅ Configuration loaded successfully');

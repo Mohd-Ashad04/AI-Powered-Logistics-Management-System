@@ -182,11 +182,9 @@ class WorkflowService {
       await this.updateOrderStatus(orderId, 'DISPATCHED_FROM_ORIGIN', 
         `Dispatched to ${order.workflowTracking.destinationHub.city}`, null, hubManagerId);
       
-      // Set status to in transit
-      setTimeout(async () => {
-        await this.updateOrderStatus(orderId, 'IN_TRANSIT', 
-          `En route to ${order.workflowTracking.destinationHub.city}`);
-      }, 1000);
+      // Set status to in transit directly (M1-B: no fire-and-forget state mutations)
+      await this.updateOrderStatus(orderId, 'IN_TRANSIT', 
+        `En route to ${order.workflowTracking.destinationHub.city}`);
       
       return {
         success: true,

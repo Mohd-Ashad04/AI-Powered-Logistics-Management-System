@@ -1,243 +1,113 @@
-const validateOrderData = (req, res, next) => {
-  const { 
-    customerId, 
-    pickupAddress, 
-    recipientDetails, 
-    packageDetails, 
-    paymentDetails 
-  } = req.body;
+/**
+ * @Mohd Ashad
+ * 2026-08-12
+ * Joi Validation Middleware
+ * this looks like it is written in production grade form
+ */
 
-  const errors = [];
+const Joi = require('joi');
+const AppError = require('../utils/AppError');
 
-  // Validate customer ID
-  if (!customerId) {
-    errors.push('Customer ID is required');
-  }
-
-  // Validate pickup address
-  if (!pickupAddress) {
-    errors.push('Pickup address is required');
-  } else {
-    if (!pickupAddress.city) errors.push('Pickup city is required');
-    if (!pickupAddress.state) errors.push('Pickup state is required');
-    if (!pickupAddress.pincode) errors.push('Pickup pincode is required');
-  }
-
-  // Validate recipient details
-  if (!recipientDetails) {
-    errors.push('Recipient details are required');
-  } else {
-    if (!recipientDetails.name) errors.push('Recipient name is required');
-    if (!recipientDetails.phone) errors.push('Recipient phone is required');
-    if (!recipientDetails.address) {
-      errors.push('Recipient address is required');
-    } else {
-      if (!recipientDetails.address.city) errors.push('Recipient city is required');
-      if (!recipientDetails.address.state) errors.push('Recipient state is required');
-      if (!recipientDetails.address.pincode) errors.push('Recipient pincode is required');
+const validate = (schema) => {
+  return (req, res, next) => {
+    const { error } = schema.validate(req.body, { abortEarly: false, stripUnknown: true });
+    
+    if (error) {
+      // Create a unified error message
+      const errorMessage = error.details.map(detail => detail.message).join(', ');
+      return next(new AppError(errorMessage, 400, 'VALIDATION_ERROR'));
     }
-  }
-
-  // Validate package details
-  if (!packageDetails) {
-    errors.push('Package details are required');
-  } else {
-    if (!packageDetails.items || !Array.isArray(packageDetails.items) || packageDetails.items.length === 0) {
-      errors.push('Package items are required');
-    }
-    if (!packageDetails.deadWeight_kg || packageDetails.deadWeight_kg <= 0) {
-      errors.push('Package weight is required and must be greater than 0');
-    }
-    if (!packageDetails.dimensions_cm) {
-      errors.push('Package dimensions are required');
-    } else {
-      const { length, width, height } = packageDetails.dimensions_cm;
-      if (!length || !width || !height) {
-        errors.push('All package dimensions (length, width, height) are required');
-      }
-    }
-  }
-
-  // Validate payment details
-  if (!paymentDetails) {
-    errors.push('Payment details are required');
-  } else {
-    if (!paymentDetails.method) errors.push('Payment method is required');
-    if (!paymentDetails.totalValue || paymentDetails.totalValue <= 0) {
-      errors.push('Total value is required and must be greater than 0');
-    }
-    if (paymentDetails.method === 'COD' && !paymentDetails.codAmount) {
-      errors.push('COD amount is required for COD orders');
-    }
-  }
-
-  if (errors.length > 0) {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors: errors
-    });
-  }
-
-  next();
+    
+    next();
+  };
 };
 
-const validatePricingRequest = (req, res, next) => {
-  const { 
-    pickupAddress, 
-    deliveryAddress, 
-    packageDetails, 
-    paymentDetails 
-  } = req.body;
+// 1. Auth Validation
+const registerSchema = Joi.object({
+  name: Joi.string().min(2).max(100).required(),
+  email: Joi.string().email().required(),
+  password: Joi.string().min(6).required(),
+  phone: Joi.string().pattern(/^[6-9]\d{9}$/).required().messages({
+    'string.pattern.base': 'Valid Indian phone number is required'
+  }),
+  role: Joi.string().valid('customer', 'seller').optional()
+});
 
-  const errors = [];
+const loginSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().required()
+});
 
-  if (!pickupAddress || !pickupAddress.pincode) {
-    errors.push('Pickup address with pincode is required');
-  }
+// 2. Order Validation
+const addressSchema = Joi.object({
+  city: Joi.string().required(),
+  state: Joi.string().required(),
+  pincode: Joi.string().pattern(/^\d{6}$/).required()
+});
 
-  if (!deliveryAddress || !deliveryAddress.pincode) {
-    errors.push('Delivery address with pincode is required');
-  }
+const packageItemSchema = Joi.object({
+  name: Joi.string().required(),
+  weight: Joi.number().positive().required(),
+  dimensions: Joi.object({
+    length: Joi.number().positive().required(),
+    width: Joi.number().positive().required(),
+    height: Joi.number().positive().required()
+  }).optional(),
+  value: Joi.number().positive().optional(),
+  quantity: Joi.number().integer().positive().optional()
+});
 
-  if (!packageDetails || !packageDetails.deadWeight_kg) {
-    errors.push('Package weight is required');
-  }
+const createOrderSchema = Joi.object({
+  customerId: Joi.string().required(),
+  pickupAddress: addressSchema.required(),
+  recipientDetails: Joi.object({
+    name: Joi.string().required(),
+    phone: Joi.string().pattern(/^[6-9]\d{9}$/).required(),
+    address: addressSchema.required()
+  }).required(),
+  packageDetails: Joi.object({
+    items: Joi.array().items(packageItemSchema).min(1).required(),
+    deadWeight_kg: Joi.number().positive().required(),
+    dimensions_cm: Joi.object({
+      length: Joi.number().positive().required(),
+      width: Joi.number().positive().required(),
+      height: Joi.number().positive().required()
+    }).required()
+  }).required(),
+  paymentDetails: Joi.object({
+    method: Joi.string().valid('PREPAID', 'COD').required(),
+    totalValue: Joi.number().positive().required(),
+    codAmount: Joi.number().when('method', { is: 'COD', then: Joi.required(), otherwise: Joi.optional() })
+  }).required(),
+  deliveryType: Joi.string().valid('standard', 'express').optional(),
+  orderType: Joi.string().optional(),
+  priority: Joi.string().optional()
+});
 
-  if (!paymentDetails || !paymentDetails.method) {
-    errors.push('Payment method is required');
-  }
-
-  if (errors.length > 0) {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors: errors
-    });
-  }
-
-  next();
-};
-
-const validateCustomerData = (req, res, next) => {
-  const { name, email, phone } = req.body;
-
-  const errors = [];
-
-  if (!name || name.trim().length < 2) {
-    errors.push('Name is required and must be at least 2 characters');
-  }
-
-  if (!email || !isValidEmail(email)) {
-    errors.push('Valid email is required');
-  }
-
-  if (!phone || !isValidPhone(phone)) {
-    errors.push('Valid phone number is required');
-  }
-
-  if (errors.length > 0) {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors: errors
-    });
-  }
-
-  next();
-};
-
-const validateDeliveryHubData = (req, res, next) => {
-  const { hubId, state, city, area } = req.body;
-
-  const errors = [];
-  const validAreas = ['NORTH', 'SOUTH', 'EAST', 'WEST'];
-
-  if (!hubId) errors.push('Hub ID is required');
-  if (!state) errors.push('State is required');
-  if (!city) errors.push('City is required');
-  if (!area || !validAreas.includes(area)) {
-    errors.push('Valid area is required (NORTH, SOUTH, EAST, WEST)');
-  }
-
-  if (errors.length > 0) {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors: errors
-    });
-  }
-
-  next();
-};
-
-const validateDeliveryAgentData = (req, res, next) => {
-  const { agentId, name, phone, hubId, area } = req.body;
-
-  const errors = [];
-  const validAreas = ['NORTH', 'SOUTH', 'EAST', 'WEST'];
-
-  if (!agentId) errors.push('Agent ID is required');
-  if (!name) errors.push('Agent name is required');
-  if (!phone || !isValidPhone(phone)) errors.push('Valid phone number is required');
-  if (!hubId) errors.push('Hub ID is required');
-  if (!area || !validAreas.includes(area)) {
-    errors.push('Valid area is required (NORTH, SOUTH, EAST, WEST)');
-  }
-
-  if (errors.length > 0) {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors: errors
-    });
-  }
-
-  next();
-};
-
-const validateDeliveryVehicleData = (req, res, next) => {
-  const { vehicleId, type, registrationNumber, capacity } = req.body;
-
-  const errors = [];
-  const validTypes = ['MINI_TRUCK', 'TRUCK', 'TEMPO', 'CONTAINER'];
-
-  if (!vehicleId) errors.push('Vehicle ID is required');
-  if (!type || !validTypes.includes(type)) {
-    errors.push('Valid vehicle type is required (MINI_TRUCK, TRUCK, TEMPO, CONTAINER)');
-  }
-  if (!registrationNumber) errors.push('Registration number is required');
-  if (!capacity || !capacity.maxWeight_kg || !capacity.maxVolume_cbm) {
-    errors.push('Vehicle capacity (weight and volume) is required');
-  }
-
-  if (errors.length > 0) {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors: errors
-    });
-  }
-
-  next();
-};
-
-// Helper functions
-const isValidEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
-
-const isValidPhone = (phone) => {
-  const phoneRegex = /^[6-9]\d{9}$/; // Indian phone number format
-  return phoneRegex.test(phone);
-};
+// 3. Pricing Request Validation
+const pricingRequestSchema = Joi.object({
+  pickupAddress: addressSchema.required(),
+  deliveryAddress: addressSchema.required(),
+  packageDetails: Joi.object({
+    items: Joi.array().items(packageItemSchema).optional(),
+    deadWeight_kg: Joi.number().positive().required(),
+    dimensions_cm: Joi.object({
+      length: Joi.number().positive().optional(),
+      width: Joi.number().positive().optional(),
+      height: Joi.number().positive().optional()
+    }).optional()
+  }).required(),
+  paymentDetails: Joi.object({
+    method: Joi.string().valid('PREPAID', 'COD').required(),
+  }).required(),
+  deliveryType: Joi.string().valid('standard', 'express').optional(),
+  orderType: Joi.string().optional(),
+  priority: Joi.string().optional()
+});
 
 module.exports = {
-  validateOrderData,
-  validatePricingRequest,
-  validateCustomerData,
-  validateDeliveryHubData,
-  validateDeliveryAgentData,
-  validateDeliveryVehicleData
+  validateRegister: validate(registerSchema),
+  validateLogin: validate(loginSchema),
+  validateOrderData: validate(createOrderSchema),
+  validatePricingRequest: validate(pricingRequestSchema)
 };

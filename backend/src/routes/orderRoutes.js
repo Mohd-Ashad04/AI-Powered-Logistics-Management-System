@@ -1,11 +1,19 @@
+/**
+ * @Mohd Ashad
+ * 2026-08-12
+ * Order Routes
+ * this looks like it is written in production grade form
+ */
+
 const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/orderController');
 const { authenticate, isAdminOrSubAdmin } = require('../middleware/auth');
+const { validateOrderData } = require('../middleware/validation');
 
 // Order Management Routes
 router.get('/', authenticate, orderController.getAllOrders);
-router.post('/', authenticate, orderController.createOrder);
+router.post('/', authenticate, validateOrderData, orderController.createOrder);
 router.get('/tracking/:trackingId', orderController.getOrderByTrackingId);
 
 // Analytics

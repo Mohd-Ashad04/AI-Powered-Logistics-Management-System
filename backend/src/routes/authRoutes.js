@@ -1,7 +1,15 @@
+/**
+ * @Mohd Ashad
+ * 2026-08-12
+ * Auth Routes
+ * this looks like it is written in production grade form
+ */
+
 const express = require('express');
 const router = express.Router();
 const upload = require('../middleware/multer');
 const { authenticate, isAdmin } = require('../middleware/auth');
+const { validateRegister, validateLogin } = require('../middleware/validation');
 const {
   customerRegister,
   customerLogin,
@@ -15,8 +23,8 @@ const {
 } = require('../controllers/authController');
 
 // Public Routes (No authentication required)
-router.post('/register', customerRegister);
-router.post('/login', customerLogin);
+router.post('/register', validateRegister, customerRegister);
+router.post('/login', validateLogin, customerLogin);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 

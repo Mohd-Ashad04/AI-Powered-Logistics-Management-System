@@ -1,9 +1,19 @@
+/**
+ * @Mohd Ashad
+ * 2026-08-12
+ * Express Server Configuration
+ * this looks like it is written in production grade form
+ */
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
 // Import centralized configuration
 const config = require('./src/utils/config');
+const logger = require('./src/utils/logger');
+const requestIdMiddleware = require('./src/middleware/requestId');
+const errorHandler = require('./src/middleware/errorHandler');
 
 // Import routes
 const orderRoutes = require('./src/routes/orderRoutes');
@@ -25,6 +35,9 @@ app.use(cors({
   credentials: true
 }));
 
+// Request ID Middleware
+app.use(requestIdMiddleware);
+
 // Body parsing middleware
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
@@ -32,19 +45,21 @@ app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 // Serve static files (uploads)
 app.use('/uploads', express.static('uploads'));
 
-// Connect to MongoDB
-mongoose.connect(config.MONGO_URI, {
-  maxPoolSize: 10,
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000,
-})
-  .then(() => {
-    console.log('Connected to MongoDB');
+// Connect to MongoDB (skip auto-connect in tests, handled by testSetup)
+if (config.NODE_ENV !== 'test') {
+  mongoose.connect(config.MONGO_URI, {
+    maxPoolSize: 10,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
   })
-  .catch((error) => {
-    console.error('MongoDB connection error:', error);
-    process.exit(1);
-  });
+    .then(() => {
+      logger.info('Connected to MongoDB');
+    })
+    .catch((error) => {
+      logger.error('MongoDB connection error', { error });
+      process.exit(1);
+    });
+}
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -68,29 +83,53 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    success: false,
-    message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : {}
-  });
-});
-
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
-    message: 'Route not found'
+    error: {
+      code: 'NOT_FOUND',
+      message: 'Route not found'
+    },
+    requestId: req.id
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-  console.log(`📱 API Base URL: http://localhost:${PORT}`);
-  console.log(`🏥 Health Check: http://localhost:${PORT}/health`);
-  console.log(`📚 API Documentation: http://localhost:${PORT}/api/docs`);
-});
+// Error handling middleware
+app.use(errorHandler);
+
+if (require.main === module) {
+  const server = app.listen(PORT, () => {
+    logger.info(`Server is running on port ${PORT}`);
+    logger.info(`API Base URL: http://localhost:${PORT}`);
+    logger.info(`Health Check: http://localhost:${PORT}/health`);
+    logger.info(`API Documentation: http://localhost:${PORT}/api/docs`);
+  });
+
+  const gracefulShutdown = () => {
+    logger.info('Received shutdown signal (SIGTERM/SIGINT)');
+    logger.info('Closing HTTP server...');
+    server.close(() => {
+      logger.info('HTTP server closed');
+      logger.info('Closing MongoDB connection...');
+      mongoose.connection.close(false).then(() => {
+        logger.info('MongoDB connection closed cleanly');
+        process.exit(0);
+      }).catch(err => {
+        logger.error('Error during MongoDB connection closure', { error: err });
+        process.exit(1);
+      });
+    });
+
+    // Force shutdown after 10 seconds if graceful shutdown fails
+    setTimeout(() => {
+      logger.error('Could not close connections in time, forcefully shutting down');
+      process.exit(1);
+    }, 10000);
+  };
+
+  process.on('SIGTERM', gracefulShutdown);
+  process.on('SIGINT', gracefulShutdown);
+}
 
 module.exports = app;

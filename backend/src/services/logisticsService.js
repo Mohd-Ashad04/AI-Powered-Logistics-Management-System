@@ -1,7 +1,7 @@
 const Order = require('../models/Order');
 const Customer = require('../models/Customer');
 const { DeliveryHub, DeliveryAgent, DeliveryVehicle } = require('../models/Delivery');
-const aiService = require('./aiService');
+const pricingEngine = require('./pricingEngine');
 
 class LogisticsService {
   
@@ -20,68 +20,88 @@ class LogisticsService {
 
       // Calculate volumetric weight if not provided
       if (!orderData.packageDetails.volumetricWeight_kg) {
-        const { length, width, height } = orderData.packageDetails.dimensions_cm;
+        const { length = 10, width = 10, height = 10 } = orderData.packageDetails.dimensions_cm || {};
         orderData.packageDetails.volumetricWeight_kg = (length * width * height) / 5000; // Standard formula
       }
 
-      // Get AI-driven pricing
-      const pricingData = await aiService.generatePricing(orderData);
+      // M1-B: Deterministic pricing (No AI)
+      const pricingData = pricingEngine.calculatePrice({
+        pickupPincode: orderData.pickupAddress?.pincode,
+        dropPincode: orderData.recipientDetails?.address?.pincode,
+        packageDetails: orderData.packageDetails,
+        paymentDetails: orderData.paymentDetails,
+        orderType: orderData.orderType,
+        priority: orderData.priority
+      });
       
-      // Get delivery time estimation
-      const timeEstimation = await aiService.estimateDeliveryTime(orderData);
+      // M1-B: Deterministic delivery estimation (Restored to original rules)
+      let estimatedHours = 24; // Base 24 hours
+      if (orderData.deliveryType === 'express') estimatedHours = 12;
+      if (orderData.priority === 'critical' || orderData.priority === 'HIGH') estimatedHours = Math.floor(estimatedHours / 2);
+      const estimatedDeliveryDate = new Date(Date.now() + estimatedHours * 60 * 60 * 1000);
       
-      // Get route optimization
-      const routeOptimization = await aiService.generateRouteOptimization(orderData);
+      const timeEstimation = {
+        estimatedDays: estimatedHours / 24,
+        estimatedDeliveryDate,
+        confidence: 90,
+        factors: ['Deterministic scheduling applied']
+      };
 
-      // Create order with AI insights
+      // M1-B: Dummy route optimization (No AI)
+      const routeOptimization = {
+        transitRoute: [{
+          hub: 'HUB-DEFAULT',
+          state: orderData.pickupAddress?.state || 'Origin',
+          city: orderData.pickupAddress?.city || 'Origin City',
+          area: 'CENTRAL',
+          estimatedArrival: new Date(),
+          status: 'PENDING'
+        }],
+        recommendedVehicle: 'MINI_TRUCK'
+      };
+
+      // Create order with deterministic insights
       const order = new Order({
         ...orderData,
         shippingDetails: {
           ...orderData.shippingDetails,
           rate: {
             chargedToSeller_inr: pricingData.totalCost,
-            courierCost_inr: pricingData.courierPartnerCost,
-            fuelSurcharge: pricingData.fuelSurcharge,
-            handlingCharges: pricingData.handlingCharges,
-            codCharges: pricingData.codCharges
+            courierCost_inr: pricingData.subtotal * 0.7, // M1-B dummy
+            fuelSurcharge: pricingData.breakdown.fuelSurcharge,
+            handlingCharges: pricingData.breakdown.handlingCharges,
+            codCharges: pricingData.breakdown.codCharges
           },
-          estimatedDeliveryDate: new Date(timeEstimation.estimatedDeliveryDate)
+          estimatedDeliveryDate
         },
         routeOptimization: {
-          transitRoute: routeOptimization.transitRoute.map(route => ({
-            hub: route.hub,
-            state: route.state,
-            city: route.city,
-            area: route.area,
-            estimatedArrival: new Date(route.estimatedArrival),
-            status: 'PENDING'
-          })),
+          transitRoute: routeOptimization.transitRoute,
           assignedVehicle: {
-            vehicleType: routeOptimization.recommendedVehicle?.type || routeOptimization.recommendedVehicle || 'MINI_TRUCK',
+            vehicleType: routeOptimization.recommendedVehicle,
             vehicleId: `VH-${Date.now()}`,
             driverName: 'Auto Assigned',
             driverPhone: '+91-AUTO-ASSIGN'
           }
         },
         aiInsights: {
-          riskScore: this._calculateRiskScore(orderData, timeEstimation),
+          riskScore: 10,
           deliveryPrediction: {
-            confidence: timeEstimation.confidence,
-            factors: timeEstimation.factors
+            confidence: 95,
+            factors: ['Standard SLA']
           },
           pricingFactors: {
-            distance: pricingData.distanceCharges,
-            weight: pricingData.weightCharges,
+            distance: pricingData.breakdown.distanceCharge,
+            weight: pricingData.breakdown.weightCharge,
             volume: orderData.packageDetails.volumetricWeight_kg,
-            urgency: pricingData.orderTypeSurcharge,
-            special_handling: pricingData.handlingCharges
+            urgency: pricingData.breakdown.orderTypeSurcharge,
+            special_handling: pricingData.breakdown.handlingCharges
           }
         },
         trackingHistory: [{
           timestamp: new Date(),
           status: 'Order Created',
           location: `${orderData?.pickupAddress?.city || 'Unknown'}, ${orderData?.pickupAddress?.state || 'Unknown'}`,
-          remarks: 'Order placed successfully with AI-optimized routing'
+          remarks: 'Order placed successfully'
         }]
       });
 
@@ -202,14 +222,31 @@ class LogisticsService {
         recipientDetails: { address: pricingRequest.deliveryAddress },
         packageDetails: pricingRequest.packageDetails,
         paymentDetails: pricingRequest.paymentDetails,
-        orderType: pricingRequest.orderType || 'NORMAL'
+        orderType: pricingRequest.orderType || 'NORMAL',
+        priority: pricingRequest.priority || 'MEDIUM'
       };
 
-      // Get AI pricing
-      const pricingData = await aiService.generatePricing(tempOrder);
+      // M1-B: Deterministic pricing
+      const pricingData = pricingEngine.calculatePrice({
+        pickupPincode: tempOrder.pickupAddress?.pincode,
+        dropPincode: tempOrder.recipientDetails?.address?.pincode,
+        packageDetails: tempOrder.packageDetails,
+        paymentDetails: tempOrder.paymentDetails,
+        orderType: tempOrder.orderType,
+        priority: tempOrder.priority
+      });
       
-      // Get time estimation
-      const timeEstimation = await aiService.estimateDeliveryTime(tempOrder);
+      // M1-B: Deterministic estimation (Restored to original rules)
+      let estimatedHours = 24; // Base 24 hours
+      if (tempOrder.deliveryType === 'express') estimatedHours = 12;
+      if (tempOrder.priority === 'critical' || tempOrder.priority === 'HIGH') estimatedHours = Math.floor(estimatedHours / 2);
+      const estimatedDeliveryDate = new Date(Date.now() + estimatedHours * 60 * 60 * 1000);
+      
+      const timeEstimation = {
+        estimatedDays: estimatedHours / 24,
+        estimatedDeliveryDate,
+        confidence: 90
+      };
 
       return {
         pricing: pricingData,

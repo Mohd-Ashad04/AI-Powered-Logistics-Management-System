@@ -1,0 +1,201 @@
+openapi: 3.0.0
+info:
+  title: AI Logistics System API
+  version: 1.0.0
+  description: |
+    # @Mohd Ashad
+    # 2026-08-12
+    # API Documentation for AI-Powered Logistics System
+    # this looks like it is written in production grade form
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development Server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: "email is required"
+        requestId:
+          type: string
+          format: uuid
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new customer
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+                - phone
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+                phone:
+                  type: string
+                role:
+                  type: string
+                  enum: [customer, seller]
+      responses:
+        '201':
+          description: Successfully registered
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      summary: Authenticate customer
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successfully logged in
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /orders:
+    post:
+      summary: Create a new order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - customerId
+                - pickupAddress
+                - recipientDetails
+                - packageDetails
+                - paymentDetails
+              properties:
+                customerId:
+                  type: string
+                pickupAddress:
+                  type: object
+                recipientDetails:
+                  type: object
+                packageDetails:
+                  type: object
+                paymentDetails:
+                  type: object
+      responses:
+        '201':
+          description: Order created successfully
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /orders/tracking/{trackingId}:
+    get:
+      summary: Public tracking for an order
+      security: []
+      parameters:
+        - in: path
+          name: trackingId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tracking information retrieved
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /pricing/estimate:
+    post:
+      summary: Get pricing estimate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - pickupAddress
+                - deliveryAddress
+                - packageDetails
+                - paymentDetails
+              properties:
+                pickupAddress:
+                  type: object
+                deliveryAddress:
+                  type: object
+                packageDetails:
+                  type: object
+                paymentDetails:
+                  type: object
+      responses:
+        '200':
+          description: Pricing estimate retrieved successfully
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
