@@ -1,0 +1,63 @@
+/* 
+  ========================================
+  SHARED COMPONENT TOKENS (M2-C)
+  ========================================
+*/
+
+/* Card Surface Base */
+.surface-card {
+  background-color: var(--color-surface-1);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-subtle);
+  transition: border-color var(--motion-duration-fast) var(--motion-ease-default),
+              box-shadow var(--motion-duration-fast) var(--motion-ease-default),
+              transform var(--motion-duration-fast) var(--motion-ease-default);
+}
+
+.surface-card-elevated {
+  background-color: var(--color-surface-2);
+  border: 1px solid var(--color-border-default);
+  box-shadow: var(--shadow-elevated);
+}
+
+/* Base Input & Form Field */
+.form-input-base {
+  width: 100%;
+  background-color: var(--color-bg-base);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  padding: var(--space-2) var(--space-3);
+  transition: border-color var(--motion-duration-fast), box-shadow var(--motion-duration-fast);
+}
+
+.form-input-base:focus {
+  outline: none;
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 2px var(--color-accent-subtle);
+}
+
+.form-input-base:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--color-surface-1);
+}
+
+.form-input-base.error {
+  border-color: var(--color-danger-base);
+}
+
+.form-input-base.error:focus {
+  box-shadow: 0 0 0 2px var(--color-danger-subtle);
+}
+
+/* Glass Effect (Restrained) */
+.glass-surface {
+  background: rgba(15, 20, 32, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}

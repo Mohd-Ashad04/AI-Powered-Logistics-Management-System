@@ -25,11 +25,9 @@ const validate = (schema) => {
 // 1. Auth Validation
 const registerSchema = Joi.object({
   name: Joi.string().min(2).max(100).required(),
+  username: Joi.string().required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
-  phone: Joi.string().pattern(/^[6-9]\d{9}$/).required().messages({
-    'string.pattern.base': 'Valid Indian phone number is required'
-  }),
   role: Joi.string().valid('customer', 'seller').optional()
 });
 

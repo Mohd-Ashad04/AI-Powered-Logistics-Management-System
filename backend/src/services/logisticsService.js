@@ -466,8 +466,8 @@ class LogisticsService {
     if (orderData.paymentDetails.method === 'COD') {
       recommendations.push({
         type: 'COST_SAVING',
-        message: `Switch to prepaid and save ₹${pricingData.codCharges} in COD charges`,
-        savings: pricingData.codCharges
+        message: `Switch to prepaid and save ₹${pricingData.breakdown?.codCharges || 0} in COD charges`,
+        savings: pricingData.breakdown?.codCharges || 0
       });
     }
     

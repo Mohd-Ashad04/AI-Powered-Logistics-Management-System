@@ -33,13 +33,15 @@ exports.customerRegister = async (req, res) => {
       });
     }
 
-    // Create new customer
+    // Create new customer — SECURITY: always force role=customer on public registration
+    // Never trust a role supplied by the client in a public registration request
     const customer = new Customer({
       username,
       email,
       password,
       name,
-      phone
+      phone,
+      role: 'customer'
     });
 
     await customer.save();

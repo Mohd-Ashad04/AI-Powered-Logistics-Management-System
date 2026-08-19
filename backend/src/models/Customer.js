@@ -22,7 +22,7 @@ const customerSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    required: true
+    required: false
   },
   
   // Authentication
@@ -33,8 +33,13 @@ const customerSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['customer', 'admin', 'sub-admin'],
+    enum: ['customer', 'admin', 'sub-admin', 'delivery-agent'],
     default: 'customer'
+  },
+  linkedAgentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'DeliveryAgent',
+    required: function() { return this.role === 'delivery-agent'; }
   },
   
   // Password Reset

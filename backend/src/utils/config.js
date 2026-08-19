@@ -18,6 +18,9 @@ const config = {
   // AI Service
   GEMINI_API_KEY: process.env.GEMINI_API_KEY,
 
+  // External APIs
+  OPENROUTESERVICE_API_KEY: process.env.OPENROUTESERVICE_API_KEY,
+
   // URLs
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
   ADMIN_URL: process.env.ADMIN_URL || 'http://localhost:2000',

@@ -12,11 +12,11 @@ class WorkflowController {
       return { isAdmin: true };
     }
     
-    const agent = await DeliveryAgent.findOne({ email: req.customer.email });
-    if (!agent) {
-      return null;
+    if (req.customer.role === 'delivery-agent' && req.customer.linkedAgentId) {
+      return { isAdmin: false, agentId: req.customer.linkedAgentId.toString() };
     }
-    return { isAdmin: false, agentId: agent._id.toString() };
+    
+    return null;
   }
 
   // Create order with automatic pickup assignment

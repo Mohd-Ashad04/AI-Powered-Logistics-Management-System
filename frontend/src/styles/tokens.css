@@ -1,0 +1,123 @@
+:root {
+  /* 
+    ========================================
+    DESIGN SYSTEM TOKENS (M2-C)
+    Theme: Premium Enterprise Logistics SaaS
+    ========================================
+  */
+
+  /* Colors: Surfaces (Dark Theme Foundation) */
+  --color-bg-base: #06090F;
+  --color-surface-1: #0F1420;
+  --color-surface-2: #161D2E;
+  --color-surface-elevated: #1E273A;
+  
+  /* Colors: Borders */
+  --color-border-subtle: #1E273A;
+  --color-border-default: #2A364E;
+  --color-border-strong: #3B4B6B;
+  --color-border-focus: rgba(59, 130, 246, 0.5);
+
+  /* Colors: Text */
+  --color-text-primary: #F8FAFC;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted: #64748B;
+  --color-text-inverse: #06090F;
+
+  /* Colors: Semantic & Accent */
+  --color-accent-primary: #3B82F6;
+  --color-accent-hover: #2563EB;
+  --color-accent-active: #1D4ED8;
+  --color-accent-subtle: rgba(59, 130, 246, 0.1);
+
+  --color-success-base: #10B981;
+  --color-success-subtle: rgba(16, 185, 129, 0.1);
+  --color-success-text: #34D399;
+
+  --color-warning-base: #F59E0B;
+  --color-warning-subtle: rgba(245, 158, 11, 0.1);
+  --color-warning-text: #FCD34D;
+
+  --color-danger-base: #EF4444;
+  --color-danger-subtle: rgba(239, 68, 68, 0.1);
+  --color-danger-text: #F87171;
+
+  --color-info-base: #0EA5E9;
+  --color-info-subtle: rgba(14, 165, 233, 0.1);
+  --color-info-text: #7DD3FC;
+
+  /* Typography */
+  --font-family-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  
+  --font-size-xs: 0.75rem;     /* 12px */
+  --font-size-sm: 0.875rem;    /* 14px */
+  --font-size-base: 1rem;      /* 16px */
+  --font-size-lg: 1.125rem;    /* 18px */
+  --font-size-xl: 1.25rem;     /* 20px */
+  --font-size-2xl: 1.5rem;     /* 24px */
+  --font-size-3xl: 1.875rem;   /* 30px */
+  --font-size-4xl: 2.25rem;    /* 36px */
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  
+  --letter-spacing-tight: -0.01em;
+  --letter-spacing-wide: 0.025em;
+
+  /* Spacing Scale */
+  --space-1: 0.25rem;  /* 4px */
+  --space-2: 0.5rem;   /* 8px */
+  --space-3: 0.75rem;  /* 12px */
+  --space-4: 1rem;     /* 16px */
+  --space-5: 1.25rem;  /* 20px */
+  --space-6: 1.5rem;   /* 24px */
+  --space-8: 2rem;     /* 32px */
+  --space-10: 2.5rem;  /* 40px */
+  --space-12: 3rem;    /* 48px */
+  --space-16: 4rem;    /* 64px */
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 9999px;
+
+  /* Shadows & Depth */
+  --shadow-subtle: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-elevated: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-floating: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  --shadow-glow-accent: 0 0 15px rgba(59, 130, 246, 0.15);
+
+  /* Motion & Animation */
+  --motion-duration-fast: 150ms;
+  --motion-duration-normal: 250ms;
+  --motion-duration-slow: 400ms;
+  
+  --motion-ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-ease-entrance: cubic-bezier(0, 0, 0.2, 1);
+  --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --motion-ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* Layout */
+  --layout-sidebar-width: 260px;
+  --layout-sidebar-collapsed: 72px;
+  --layout-header-height: 64px;
+  --layout-content-max-width: 1400px;
+
+  /* Z-Index Hierarchy */
+  --z-base: 1;
+  --z-elevated: 10;
+  --z-sticky: 100;
+  --z-drawer: 200;
+  --z-modal: 300;
+  --z-popover: 400;
+  --z-toast: 500;
+}

@@ -25,13 +25,32 @@ const workflowRoutes = require('./src/routes/workflowRoutes');
 const authRoutes = require('./src/routes/authRoutes');
 const paymentRoutes = require('./src/routes/paymentRoutes');
 const aiRoutes = require('./src/routes/aiRoutes');
+const locationRoutes = require('./src/routes/locationRoutes');
+const routingRoutes = require('./src/routes/routingRoutes');
 
 const app = express();
 const PORT = config.PORT;
 
-// CORS configuration
+// CORS configuration — supports comma-separated origins in FRONTEND_URL
+const allowedOrigins = [
+  ...(config.FRONTEND_URL ? config.FRONTEND_URL.split(',').map(u => u.trim()) : []),
+  ...(config.ADMIN_URL ? config.ADMIN_URL.split(',').map(u => u.trim()) : []),
+  ...(config.CLIENT_URL ? config.CLIENT_URL.split(',').map(u => u.trim()) : [])
+].filter(Boolean);
+
+// In development, ensure localhost origins are available
+if (config.NODE_ENV !== 'production') {
+  const devOrigins = ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:2000', 'http://localhost:2001'];
+  devOrigins.forEach(o => { if (!allowedOrigins.includes(o)) allowedOrigins.push(o); });
+}
+
 app.use(cors({
-  origin: [config.FRONTEND_URL, config.ADMIN_URL, config.CLIENT_URL],
+  origin: function(origin, callback) {
+    // Allow requests with no origin (server-to-server, health checks, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 
@@ -70,6 +89,8 @@ app.use('/api/pricing', pricingRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/workflow', workflowRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/locations', locationRoutes);
+app.use('/api/routing', routingRoutes);
 
 // API Documentation
 app.use('/api/docs', docsRoutes);

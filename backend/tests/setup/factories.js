@@ -21,18 +21,24 @@ const createTestCustomer = async (overrides = {}) => {
 const { DeliveryAgent } = require('../../src/models/Delivery');
 
 const createTestAgent = async (overrides = {}) => {
-  const customer = await createTestCustomer(overrides);
   const agent = new DeliveryAgent({
     agentId: `AGT-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-    name: customer.name,
-    phone: customer.phone,
-    email: customer.email,
+    name: 'Test Agent',
+    phone: '9999999999',
+    email: `agent-${Date.now()}@example.com`,
     hubId: 'HUB-123',
     area: 'NORTH',
     vehicleType: 'BIKE',
     status: 'AVAILABLE'
   });
   await agent.save();
+  
+  const customer = await createTestCustomer({
+    ...overrides,
+    role: 'delivery-agent',
+    linkedAgentId: agent._id
+  });
+  
   // Return the customer because the test needs it for generateToken
   customer._agentId = agent._id;
   customer.agentId = agent.agentId;
